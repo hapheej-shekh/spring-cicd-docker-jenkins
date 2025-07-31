@@ -14,6 +14,6 @@ public class Welcome {
 	@GetMapping
 	public ResponseEntity<String> greet() {
 		
-		return new ResponseEntity<>("Welcome to devops learning", HttpStatus.OK);
+		return new ResponseEntity<>("Welcome to devops/jenkins learning", HttpStatus.OK);
 	}
 }
