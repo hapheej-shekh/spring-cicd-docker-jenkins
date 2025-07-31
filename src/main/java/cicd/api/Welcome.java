@@ -21,6 +21,6 @@ public class Welcome {
 	@PostMapping
 	public ResponseEntity<String> create() {
 		
-		return new ResponseEntity<>("Welcome to devops/jenkins learning", HttpStatus.OK);
+		return new ResponseEntity<>("Post demo", HttpStatus.OK);
 	}
 }
