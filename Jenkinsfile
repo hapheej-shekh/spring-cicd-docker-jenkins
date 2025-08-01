@@ -47,19 +47,11 @@ pipeline {
         stage('Deploy Locally') {
             steps {
                 sh '''
-                # Find and stop any container using port 8082
-                CONTAINER_ID=$(docker ps --format '{{.ID}} {{.Ports}}' | grep '0.0.0.0:8082->' | awk '{print $1}')
-                if [ ! -z "$CONTAINER_ID" ]; then
-                    echo "Stopping container using port 8082: $CONTAINER_ID"
-                    docker stop $CONTAINER_ID
-                    docker rm $CONTAINER_ID
-                fi
-
-                # Remove existing container by name if still there
-                docker rm -f docker-jenkins-image || true
-
+                docker stop docker-jenkins-image || true
+                docker rm docker-jenkins-image || true
+				
                 # Run the new container
-                docker run -d -p 8082:8082 --name docker-jenkins-image ${IMAGE_NAME}:${BUILD_NUMBER}
+                docker run -d -p 9090:8082 --name docker-jenkins-image ${IMAGE_NAME}:${BUILD_NUMBER}
                 '''
             }
         }
