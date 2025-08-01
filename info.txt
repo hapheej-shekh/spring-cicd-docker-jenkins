@@ -1,0 +1,94 @@
+		Jenkins Pipeline
+	------------------------
+
+
+1. Install Jenkins
+	
+	Install Docker Image [Or can download & install]
+	
+	docker pull jenkins/jenkins:lts
+	
+	OR use below command for latest version
+	
+	docker pull jenkins/jenkins
+	
+	Normally jenkins image don't have docker & maven cli, so build Jenkins-Image using custom Dockerfile locally
+	
+	Custom file--> spring-cicd-docker-jenkins\Docker-Jenkins-Maven-Image-Custom\Dockerfile
+	
+	Build command[From custom Dockerfile]-->	docker build -t jenkins-with-maven .
+	
+	
+2. Jenkinsfile (Declarative Pipeline)
+
+	-> Create Jenkinsfile in project root
+
+	-> Provide credential ID from Jenkins [dockerhub-creds] as below
+	
+	environment {
+        IMAGE_NAME = '<dockerhub-username>/<docker-hub-repository-name>'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
+    }
+	
+	-> Provide git repo name
+	-> Bind Web-Port carefully
+	   docker run -d -p <Web-Port>:<Jenkins-Port> --name <app-name>
+	   
+	   
+3. Run Jenkins with Docker socket access
+	Use below command to run Jenkins-Image to instantiate container
+	
+	docker run -d --name jenkins -p 8082:8080 -p 50000:50000 -u root -v /var/run/docker.sock:/var/run/docker.sock -v jenkins_home:/var/jenkins_home jenkins-with-maven
+
+	Note: -u root --> allows Jenkins to access the Docker socket (important for build/push)
+
+	Get Admin password [Default user is Admin]
+	
+	docker exec <Container-Name> cat /var/jenkins_home/secrets/initialAdminPassword
+	docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+	Access Jenkins using url--> http://localhost:8082/
+	
+	
+4. Install Plugins- 
+	Go to Genkins UI → http://localhost:<PORT>/ 	→ [Default port 8080]
+	Manage Jenkins → Plugins → Available → install
+	Install Plugins → Pipeline, Docker Pipeline, Docker plugin, Docker Commons, Pipeline: SCM Step, 
+					  Maven Integration plugin, Git Plugin, GitHub Plugin, GitHub Integration Plugin,
+	                  Credentials Binding
+
+5. Credentials in Jenkins
+	Go to: Manage Jenkins → Credentials → Global → Add Credentials
+	-> Add docker-hub username & password
+	-> Provide any random ID name [dockerhub-creds], needed in Jenkinsfile
+
+
+
+6. Jenkins Webhook Integration
+	Configure so that pipeline runs on every git push
+	Go to: Genkins-Repo --> Configure --> 
+				Triggers --> Select: GitHub hook trigger for GITScm polling
+				Pipeline --> Git repo URL
+					         Set Credentials of GitRepo [Use secrate token instead of password]
+							 Set branch- main [main, master, dev, prod]
+							 
+				Script Path --> Jenkinsfile
+				
+
+7. GitHub Webhook Integration
+		Go to repository
+		Settings → Webhooks → Add Webhook
+			URL:	http://<your-jenkins-host>/github-webhook/
+			Content Type: application/json
+			Events: Push events
+			
+		Jenkins won't trigger in localhost so-
+		
+		1. Download & extraxt ngrok.exe file
+		2. Set environment for ngrok.exe
+		3. Run command-> ngrok http 8082	[Jenkins localhost port]
+		4. ngrok converts Jenkins localhost to app url
+		5. Use this url for locahost only --> http://<your-jenkins-host>/github-webhook/
+		6. Keep running ngrok until Jenkins pipeline finish
+		7. ngrok gives random URL everytime, so update new URL everytime in Git Webhook
+
