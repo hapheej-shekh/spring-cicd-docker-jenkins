@@ -18,6 +18,12 @@ public class Welcome {
 		return new ResponseEntity<>("Welcome to devops/jenkins learning...1", HttpStatus.OK);
 	}
 	
+	@GetMapping("developer")
+	public ResponseEntity<String> greet() {
+		
+		return new ResponseEntity<>("Welcome to devops/jenkins learning...for developers", HttpStatus.OK);
+	}
+	
 	@PostMapping
 	public ResponseEntity<String> create() {
 		
