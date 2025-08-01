@@ -13,10 +13,11 @@ WORKDIR /spring-cicd-docker-jenkins
 
 # Copy JAR file to container
 # IMPORTANT: Replace with your actual JAR name
-COPY target/spring-cicd-docker-jenkins-0.0.1.jar docker-jenkins-app.jar
+#COPY target/spring-cicd-docker-jenkins-0.0.1.jar docker-jenkins-app.jar
+COPY target/*.jar docker-jenkins-app.jar
 
 # Expose the port your docker-app listens on (default: 8080)
-EXPOSE 8081
+EXPOSE 8082
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "docker-jenkins-app.jar"]

@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/hapheej-shekh/docker-jenkins-image.git'
+                git 'https://github.com/hapheej-shekh/spring-cicd-docker-jenkins.git'
             }
         }
 
