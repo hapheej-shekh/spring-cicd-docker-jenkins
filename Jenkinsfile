@@ -85,26 +85,30 @@ pipeline {
 		
 		stage('Cleanup Old Docker Hub Tags') {
 			steps {
-				withCredentials([string(credentialsId: 'dockerhub-del', variable: 'DOCKERHUB_DEL')]) {
+				withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
 					sh '''
+					# Install jq if not present
+					if ! command -v jq >/dev/null 2>&1; then
+						apt-get update && apt-get install -y jq || apk add --no-cache jq
+					fi
+
 					USERNAME=sheikhitech
 					REPO=spring-cicd-docker-jenkins
 
-					# Get tags from Docker Hub
-					tags=$(curl -s -u "$USERNAME:$DOCKERHUB_DEL" "https://hub.docker.com/v2/repositories/$USERNAME/$REPO/tags?page_size=100" | jq -r '.results | sort_by(.last_updated) | reverse | .[].name')
+					# Fetch tags from Docker Hub
+					tags=$(curl -s -u $DOCKERHUB_USER:$DOCKERHUB_PASS https://hub.docker.com/v2/repositories/$USERNAME/$REPO/tags?page_size=100 |
+						jq -r '.results | sort_by(.last_updated) | reverse | .[].name')
 
-					count=0
-					keep=5
+					count=$(echo "$tags" | wc -l)
 
-					for tag in $tags; do
-					  count=$((count + 1))
-					  if [ $count -le $keep ]; then
-						echo "Keeping $tag"
-					  else
-						echo "Deleting $tag"
-						curl -s -X DELETE -u "$USERNAME:$DOCKERHUB_DEL" "https://hub.docker.com/v2/repositories/$USERNAME/$REPO/tags/$tag/"
-					  fi
-					done
+					if [ "$count" -gt 2 ]; then
+						echo "$tags" | tail -n +3 | while read tag; do
+							echo "Deleting tag: $tag"
+							curl -X DELETE -u $DOCKERHUB_USER:$DOCKERHUB_PASS https://hub.docker.com/v2/repositories/$USERNAME/$REPO/tags/$tag/
+						done
+					else
+						echo "Less than 3 tags, skipping deletion."
+					fi
 					'''
 				}
 			}
