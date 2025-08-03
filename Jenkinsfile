@@ -94,41 +94,47 @@ pipeline {
 					passwordVariable: 'DOCKERHUB_PASS'
 				  )
 				]) {
-					sh '''
-					# Install jq if not available for JSON
-					if ! command -v jq >/dev/null 2>&1; then
-						apt-get update && apt-get install -y jq || apk add --no-cache jq
-					fi
+					sh(script: '''#!/bin/bash
+					set +x  # Disable command echoing
+					
+						# Install jq if not available for JSON
+						if ! command -v jq >/dev/null 2>&1; then
+							apt-get update && apt-get install -y jq || apk add --no-cache jq
+						fi
 
-					# Get JWT token from DockerHub
-					TOKEN=$(curl -s -H "Content-Type: application/json" \\
-					  -X POST https://hub.docker.com/v2/users/login/ \\
-					  -d '{"username": "'"$DOCKERHUB_USER"'", "password": "'"$DOCKERHUB_PASS"'"}' | jq -r '.token')
+						# Get JWT token from DockerHub
+						
+						TOKEN=$(curl -s -H "Content-Type: application/json" \\
+						  -X POST https://hub.docker.com/v2/users/login/ \\
+						  -d '{"username": "'"$DOCKERHUB_USER"'", "password": "'"$DOCKERHUB_PASS"'"}' | jq -r '.token')
 
-					if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-						echo "❌ Failed to get JWT token from DockerHub"
-						exit 1
-					fi
+						if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+							echo "❌ Failed to get JWT token from DockerHub"
+							exit 1
+						fi
 
-					echo "✅ JWT token acquired"
+						echo "✅ JWT token acquired"
 
-					# Get list of tags sorted by last updated (latest first)
-					tags=$(curl -s -H "Authorization: JWT $TOKEN" \\
-					  https://hub.docker.com/v2/repositories/$DOCKERHUB_USER/$REPO/tags?page_size=100 |
-					  jq -r '.results | sort_by(.last_updated) | reverse | .[].name')
+						# Get list of tags sorted by last updated (latest first)
+						tags=$(curl -s -H "Authorization: JWT $TOKEN" \\
+						  https://hub.docker.com/v2/repositories/$DOCKERHUB_USER/$REPO/tags?page_size=100 |
+						  jq -r '.results | sort_by(.last_updated) | reverse | .[].name')
 
-					count=$(echo "$tags" | wc -l)
+						count=$(echo "$tags" | wc -l)
 
-					if [ "$count" -gt 2 ]; then
-						echo "$tags" | tail -n +3 | while read tag; do
-							echo "Deleting tag: $tag"
-							curl -s -X DELETE -H "Authorization: JWT $TOKEN" \\
-								https://hub.docker.com/v2/repositories/$DOCKERHUB_USER/$REPO/tags/$tag/
-						done
-					else
-						echo "Less than 3 tags, skipping deletion."
-					fi
-					'''
+						if [ "$count" -gt 2 ]; then
+							echo "$tags" | tail -n +3 | while read tag; do
+								echo "Deleting tag: $tag"
+								curl -s -X DELETE -H "Authorization: JWT $TOKEN" \\
+									https://hub.docker.com/v2/repositories/$DOCKERHUB_USER/$REPO/tags/$tag/
+							done
+						else
+							echo "Less than 3 tags, skipping deletion."
+						fi
+
+					set -x  # Re-enable echoing if needed
+					''')
+					echo "Repo deletion done."
 				}
 			}
 		}
