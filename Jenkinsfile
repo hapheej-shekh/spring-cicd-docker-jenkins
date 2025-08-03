@@ -3,10 +3,10 @@ pipeline {
 
     environment {
 	
-		# username/docker-hub-repo-name
+		// username/docker-hub-repo-name
         IMAGE_NAME = 'sheikhitech/spring-cicd-docker-jenkins'
 		
-		#dockerhub-creds defined in jenkins pipeline
+		// dockerhub-creds defined in jenkins pipeline
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     }
 
