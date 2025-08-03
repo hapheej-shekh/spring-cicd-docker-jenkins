@@ -42,7 +42,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
                         dockerImage.push()
-                        dockerImage.push("latest")
+                        dockerImage.push("latest") //Pushes same image with :latest tag name
                     }
                 }
             }
