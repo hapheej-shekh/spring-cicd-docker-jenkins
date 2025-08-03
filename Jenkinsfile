@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'sheikhitech/docker-jenkins-image'
+	
+		# username/docker-hub-repo-name
+        IMAGE_NAME = 'sheikhitech/spring-cicd-docker-jenkins'
+		
+		#dockerhub-creds defined in jenkins pipeline
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
     }
 
@@ -47,11 +51,14 @@ pipeline {
         stage('Deploy Locally') {
             steps {
                 sh '''
-                docker stop docker-jenkins-image || true
-                docker rm docker-jenkins-image || true
+				
+				# docker-jenkins is container name supplied from run command
+				
+                docker stop docker-jenkins || true
+                docker rm docker-jenkins || true
 				
                 # Run the new container
-                docker run -d -p 9090:8082 --name docker-jenkins-image ${IMAGE_NAME}:${BUILD_NUMBER}
+                docker run -d -p 8082:8082 --name docker-jenkins ${IMAGE_NAME}:${BUILD_NUMBER}
                 '''
             }
         }

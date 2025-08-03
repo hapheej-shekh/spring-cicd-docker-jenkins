@@ -92,3 +92,28 @@
 		6. Keep running ngrok until Jenkins pipeline finish
 		7. ngrok gives random URL everytime, so update new URL everytime in Git Webhook
 
+
+
+
+Commands
+--------
+Dockerfile having maven, docker installation commands from 'Docker-Jenkins-Maven-Image-Custom'
+
+docker build -t jenkins-with-maven .
+
+docker run -d --name jenkins -p 8082:8080 -p 50000:50000 -u root -v /var/run/docker.sock:/var/run/docker.sock -v jenkins_home:/var/jenkins_home jenkins-with-maven
+
+docker exec <Container-Name> cat /var/jenkins_home/secrets/initialAdminPassword
+
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+ngrok http 8082
+---------------
+To conver local URL to App-Url for Github--> Webhooks
+
+
+Jenkins
+-------
+username- hapheej
+password- hapheej
+id- dockerhub-creds
