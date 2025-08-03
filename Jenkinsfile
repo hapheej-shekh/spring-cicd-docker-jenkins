@@ -62,6 +62,33 @@ pipeline {
                 '''
             }
         }
+		
+		stage('Cleanup Old Docker Tags') {
+			steps {
+				withCredentials([string(credentialsId: 'dockerhub-pat', variable: 'DOCKERHUB_DEL')]) {
+					sh '''
+					USERNAME=sheikhitech
+					REPO=spring-cicd-docker-jenkins
+
+					# Get tags from Docker Hub
+					tags=$(curl -s -u "$USERNAME:$DOCKERHUB_DEL" "https://hub.docker.com/v2/repositories/$USERNAME/$REPO/tags?page_size=100" | jq -r '.results | sort_by(.last_updated) | reverse | .[].name')
+
+					count=0
+					keep=5
+
+					for tag in $tags; do
+					  count=$((count + 1))
+					  if [ $count -le $keep ]; then
+						echo "Keeping $tag"
+					  else
+						echo "Deleting $tag"
+						curl -s -X DELETE -u "$USERNAME:$DOCKERHUB_DEL" "https://hub.docker.com/v2/repositories/$USERNAME/$REPO/tags/$tag/"
+					  fi
+					done
+					'''
+				}
+			}
+		}
     }
 
     post {
