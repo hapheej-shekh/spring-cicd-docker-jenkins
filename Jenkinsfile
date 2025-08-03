@@ -63,7 +63,27 @@ pipeline {
             }
         }
 		
-		stage('Cleanup Old Docker Tags') {
+		stage('Cleanup Old Local Images') {
+			steps {
+				sh '''
+				# List all image IDs (excluding 'latest') sorted by creation date, then delete all but the last 2
+				IMAGE_REPO="sheikhitech/spring-cicd-docker-jenkins"
+				
+				# Get image IDs sorted by creation date (older first), exclude latest
+				images=$(docker images --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep "$IMAGE_REPO" | grep -v latest | sort -u | awk '{print $2}')
+				
+				# Count how many images
+				total=$(echo "$images" | wc -l)
+				
+				# If more than 2, delete older ones
+				if [ "$total" -gt 2 ]; then
+					echo "$images" | head -n $(($total - 2)) | xargs -r docker rmi || true
+				fi
+				'''
+			}
+		}
+		
+		stage('Cleanup Old Docker Hub Tags') {
 			steps {
 				withCredentials([string(credentialsId: 'dockerhub-pat', variable: 'DOCKERHUB_DEL')]) {
 					sh '''
