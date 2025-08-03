@@ -85,7 +85,7 @@ pipeline {
 		
 		stage('Cleanup Old Docker Hub Tags') {
 			steps {
-				withCredentials([string(credentialsId: 'dockerhub-pat', variable: 'DOCKERHUB_DEL')]) {
+				withCredentials([string(credentialsId: 'dockerhub-del', variable: 'DOCKERHUB_DEL')]) {
 					sh '''
 					USERNAME=sheikhitech
 					REPO=spring-cicd-docker-jenkins
