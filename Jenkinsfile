@@ -132,7 +132,7 @@ pipeline {
 				}
 			}
 		}
-
+	}
     post {
         success {
             echo '🚀 Deployment Success!'
