@@ -85,7 +85,13 @@ pipeline {
 		
 		stage('Cleanup Old Docker Hub Tags') {
 			steps {
-				withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+				withCredentials([
+				  usernamePassword(
+					credentialsId: 'dockerhub-del',   // ✅ use PAT credential ID
+					usernameVariable: 'DOCKERHUB_USER',
+					passwordVariable: 'DOCKERHUB_PASS'
+				  )
+				]) {
 					sh '''
 					# Install jq if not present
 					if ! command -v jq >/dev/null 2>&1; then
