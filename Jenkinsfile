@@ -1,4 +1,5 @@
 pipeline {
+
     agent any
 
     environment {
@@ -10,6 +11,10 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub-creds'
 		
 		REPO = 'spring-cicd-docker-jenkins'
+		
+		CONTAINER_NAME = 'project-jenkins-cont'
+		WEB_PORT = 8084
+		HOST_PORT = 8084
     }
 
     stages {
@@ -34,7 +39,13 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
+                    // dockerImage = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
+					
+					// Build the Docker image quietly to suppress verbose logs
+					sh "docker build --quiet -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+					
+					// Reference the built image for later use (e.g., push)
+					dockerImage = docker.image("${IMAGE_NAME}:${BUILD_NUMBER}")
                 }
             }
         }
@@ -56,11 +67,11 @@ pipeline {
 				
 				# docker-jenkins is container name supplied from run command
 				
-                docker stop docker-jenkins || true
-                docker rm docker-jenkins || true
+                docker stop ${CONTAINER_NAME} || true
+                docker rm ${CONTAINER_NAME} || true
 				
                 # Run the new container
-                docker run -d -p 8082:8082 --name docker-jenkins ${IMAGE_NAME}:${BUILD_NUMBER}
+                docker run -d -p --name ${CONTAINER_NAME} ${WEB_PORT}:${HOST_PORT} ${IMAGE_NAME}:${BUILD_NUMBER}
                 '''
             }
         }
@@ -113,7 +124,7 @@ pipeline {
 							exit 1
 						fi
 
-						echo "✅ JWT token acquired"
+						echo "JWT token acquired"
 
 						# Get list of tags sorted by last updated (latest first)
 						tags=$(curl -s -H "Authorization: JWT $TOKEN" \\
