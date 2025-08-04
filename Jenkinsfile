@@ -18,7 +18,12 @@ pipeline {
     }
 
     stages {
-        
+	
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/hapheej-shekh/spring-cicd-docker-jenkins.git'
+            }
+        }
 
         stage('Build JAR') {
             steps {
