@@ -39,17 +39,15 @@ cd ..
 echo ==================================================
 echo STEP 2: Fix Jenkins Volume Permissions (if needed)
 echo ==================================================
-docker run --rm -u root -v jenkins_home:/var/jenkins_home alpine sh -c "chown -R 1000:1000 /var/jenkins_home"
+REM below command need to fix permission errors
+REM docker run --rm -u root -v jenkins_home:/var/jenkins_home alpine sh -c "chown -R 1000:1000 /var/jenkins_home"
 
 
 echo ===============================
 echo STEP 3: Run Jenkins Container
 echo ===============================
-docker run -d ^
-  --name %JENKINS_CONTAINER_NAME% ^
-  -p %JENKINS_PORT%:8080 ^
-  -v jenkins_home:/var/jenkins_home ^
-  %BASE_IMAGE_NAME%
+REM docker run -d --name %JENKINS_CONTAINER_NAME% -p %JENKINS_PORT%:8080 -v jenkins_home:/var/jenkins_home %BASE_IMAGE_NAME%
+docker run -d -u root --name %JENKINS_CONTAINER_NAME% -p %JENKINS_PORT%:8080 -v /var/run/docker.sock:/var/run/docker.sock -v jenkins_home:/var/jenkins_home %BASE_IMAGE_NAME%
 
 IF ERRORLEVEL 1 (
     echo Failed to run Jenkins container!
