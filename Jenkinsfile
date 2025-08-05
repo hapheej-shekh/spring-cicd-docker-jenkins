@@ -41,6 +41,7 @@ pipeline {
             steps {
                 script {
                     
+					echo "🐳 Building Docker image: ${IMAGE_NAME}:${BUILD_NUMBER}"
 					dockerImage = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
 					
 					// Build the Docker image quietly to suppress verbose logs
@@ -63,20 +64,34 @@ pipeline {
             }
         }
 
-        stage('Deploy Locally') {
-            steps {
-                sh '''
-				
-				# docker-jenkins is container name supplied from run command
-				
-                docker stop ${CONTAINER_NAME} || true
-                docker rm ${CONTAINER_NAME} || true
-				
-                # Run the new container
-                docker run -d -p --name ${CONTAINER_NAME} ${WEB_PORT}:${HOST_PORT} ${IMAGE_NAME}:${BUILD_NUMBER}
-                '''
-            }
-        }
+		stage('Remove Host Machine Docker Image') {
+			steps {
+				script {
+					
+					echo "🧹 Removing local/Host Machine image to save space"
+					sh "docker rmi ${IMAGE_NAME}:${BUILD_NUMBER} || true"
+					sh "docker rmi ${IMAGE_NAME}:latest || true"
+				}
+			}
+		}
+
+		stage('Deploy Locally from Docker Hub') {
+			steps {
+				script {
+					sh '''
+						echo "🔄 Pulling latest image from Docker Hub"
+						docker pull ${IMAGE_NAME}:${BUILD_NUMBER} || docker pull ${IMAGE_NAME}:latest
+
+						echo "🛑 Stopping and removing existing container (if any)..."
+						docker stop ${CONTAINER_NAME} || true
+						docker rm ${CONTAINER_NAME} || true
+
+						echo "🚀 Running new container from pulled image..."
+						docker run -d --name ${CONTAINER_NAME} -p ${WEB_PORT}:${HOST_PORT} ${IMAGE_NAME}:${BUILD_NUMBER}
+					'''
+				}
+			}
+		}
 		
 		stage('Cleanup Old Local Images') {
 			steps {
