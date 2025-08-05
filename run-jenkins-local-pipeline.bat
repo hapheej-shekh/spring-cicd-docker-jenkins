@@ -13,8 +13,8 @@ SET JENKINS_PORT=8080
 REM === Variables for Spring Boot project ===
 SET PROJECT_IMAGE_NAME=project-maven-jenkins
 SET PROJECT_CONTAINER_NAME=project-jenkins-cont
-SET HOST_PORT=8084
-SET CONTAINER_PORT=8084
+SET HOST_PORT=8082
+SET CONTAINER_PORT=8082
 
 
 echo ===============================

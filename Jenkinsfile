@@ -13,8 +13,8 @@ pipeline {
 		REPO = 'spring-cicd-docker-jenkins'
 		
 		CONTAINER_NAME = 'project-jenkins-cont'
-		WEB_PORT = 8084
-		HOST_PORT = 8084
+		WEB_PORT = 8082
+		HOST_PORT = 8082
     }
 
     stages {
@@ -40,13 +40,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // dockerImage = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
+                    
+					dockerImage = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
 					
 					// Build the Docker image quietly to suppress verbose logs
-					sh "docker build --quiet -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+					//sh "docker build --quiet -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
 					
 					// Reference the built image for later use (e.g., push)
-					dockerImage = docker.image("${IMAGE_NAME}:${BUILD_NUMBER}")
+					//dockerImage = docker.image("${IMAGE_NAME}:${BUILD_NUMBER}")
                 }
             }
         }
