@@ -5,10 +5,10 @@ REM === Set working directory to the script's directory ===
 cd /d %~dp0
 
 REM === Variables for base image (custom Jenkins + AWS CLI, Maven, etc.) ===
-SET BASE_IMAGE_DIR=Docker-Jenkins-Custom-Image
-SET BASE_IMAGE_NAME=docker-maven-cli
-SET JENKINS_CONTAINER_NAME=docker-maven-jenkins
-SET JENKINS_PORT=8080
+SET BASE_IMAGE_DIR=..\spring-cloud-custom-image\
+SET BASE_IMAGE_NAME=amazon-cli-kubectl
+SET JENKINS_CONTAINER_NAME=docker-jenkins-amazon
+SET JENKINS_PORT=9095
 
 REM === Variables for Spring Boot project ===
 SET PROJECT_IMAGE_NAME=project-maven-jenkins
@@ -24,23 +24,21 @@ docker rm -f %JENKINS_CONTAINER_NAME% >nul 2>&1
 
 
 echo ===============================
-echo STEP 1: Build Base Image (%BASE_IMAGE_NAME%)
+echo STEP 1: Use Commaon Base Image (%BASE_IMAGE_NAME%)
 echo ===============================
-cd %BASE_IMAGE_DIR%
-docker build -t %BASE_IMAGE_NAME% .
+docker build -t %BASE_IMAGE_NAME% %BASE_IMAGE_DIR%
 IF ERRORLEVEL 1 (
     echo Base image build failed!
     pause
     exit /b
 )
-cd ..
 
 
 echo ==================================================
 echo STEP 2: Fix Jenkins Volume Permissions (if needed)
 echo ==================================================
-REM below command need to fix permission errors
 REM docker run --rm -u root -v jenkins_home:/var/jenkins_home alpine sh -c "chown -R 1000:1000 /var/jenkins_home"
+docker run --rm -u root -v jenkins_home:/var/jenkins_home alpine sh -c "chown -R 1000:1000 /var/jenkins_home"
 
 
 echo ===============================
